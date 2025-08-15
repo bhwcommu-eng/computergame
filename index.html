@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>เกมสอนเขียนโค้ด</title>
+<title>เกมโยงคำสั่งตัวละคร</title>
 <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
 <style>
   body {
@@ -12,76 +12,93 @@
     margin: 0;
     padding: 0;
   }
-  h1 { color: #ff6600; margin-top: 20px; font-size: 2.5em; text-shadow: 2px 2px #ffd699; }
-  #gameContainer { margin-top: 20px; }
-  canvas { background-color: #fff; border: 3px solid #ff6600; border-radius: 15px; }
-  textarea { width: 300px; height: 100px; font-size: 16px; margin-top: 10px; }
-  button { font-size: 16px; padding: 10px 20px; margin-top: 10px; cursor: pointer; border-radius: 10px; border: 2px solid #ff6600; background-color: #ffcc99; }
+  h1 { color: #ff6600; margin-top: 20px; font-size: 2.5em; }
+  #gameCanvas { background-color: #fff; border: 3px solid #ff6600; border-radius: 15px; margin-top: 20px; }
+  #commands { display: flex; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+  .cmd { background-color: #ffcc99; border: 2px solid #ff6600; border-radius: 10px; padding: 10px 20px; margin: 5px; cursor: grab; }
+  #sequence { min-height: 50px; background-color: #fff3e0; border: 2px dashed #ff6600; margin: 20px auto; padding: 10px; width: 400px; border-radius: 10px; }
+  button { font-size: 16px; padding: 10px 20px; border-radius: 10px; margin-top: 10px; cursor: pointer; border: 2px solid #ff6600; background-color: #ffcc99; }
 </style>
 </head>
 <body>
 
-<h1>🐱 เกมสอนเขียนโค้ด</h1>
-<p>เขียนคำสั่งให้แมวไปถึงปลายทาง!</p>
+<h1>🐱 เกมโยงคำสั่งตัวละคร 🐱</h1>
+<canvas id="gameCanvas" width="400" height="400"></canvas>
 
-<div id="gameContainer">
-  <canvas id="gameCanvas" width="400" height="400"></canvas>
-  <br>
-  <textarea id="codeInput" placeholder="เขียนคำสั่ง: forward(), left(), right()"></textarea><br>
-  <button onclick="runCode()">Run Code</button>
-  <p>คำสั่งที่ใช้: <b>forward()</b>, <b>left()</b>, <b>right()</b></p>
+<div id="commands">
+  <div class="cmd" draggable="true">ไปข้างหน้า</div>
+  <div class="cmd" draggable="true">เลี้ยวซ้าย</div>
+  <div class="cmd" draggable="true">เลี้ยวขวา</div>
 </div>
+
+<h3>ลากคำสั่งมาที่นี่</h3>
+<div id="sequence"></div>
+<button onclick="runSequence()">Run</button>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-
 let player = { x: 50, y: 350, angle: 0 };
 const goal = { x: 350, y: 50 };
 
 function draw() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  // วาดเป้าหมาย
   ctx.fillStyle = '#33cc33';
   ctx.fillRect(goal.x-15, goal.y-15, 30, 30);
 
-  // วาดตัวละคร (แมว)
   ctx.save();
   ctx.translate(player.x, player.y);
   ctx.rotate(player.angle * Math.PI / 180);
   ctx.fillStyle = '#ff6600';
-  ctx.fillRect(-15,-15,30,30); // ตัวละครเป็นสี่เหลี่ยมง่ายๆ
+  ctx.fillRect(-15,-15,30,30);
   ctx.restore();
 }
-
 draw();
 
-function runCode() {
-  const code = document.getElementById('codeInput').value;
-  const commands = code.split('\n').map(c => c.trim());
+// Drag & Drop
+const cmds = document.querySelectorAll('.cmd');
+const sequence = document.getElementById('sequence');
+
+cmds.forEach(cmd => {
+  cmd.addEventListener('dragstart', e => { e.dataTransfer.setData('text', cmd.innerText); });
+});
+
+sequence.addEventListener('dragover', e => e.preventDefault());
+sequence.addEventListener('drop', e => {
+  const text = e.dataTransfer.getData('text');
+  const div = document.createElement('div');
+  div.innerText = text;
+  div.style.margin = "5px";
+  div.style.display = "inline-block";
+  div.style.padding = "5px 10px";
+  div.style.backgroundColor = "#ffe0b3";
+  div.style.borderRadius = "5px";
+  sequence.appendChild(div);
+});
+
+function runSequence() {
+  const commands = Array.from(sequence.children).map(div => div.innerText);
   let step = 0;
 
   function executeStep() {
     if(step >= commands.length) {
       draw();
       if(Math.abs(player.x - goal.x) < 20 && Math.abs(player.y - goal.y) < 20) {
-        alert('🎉 ยินดีด้วย! คุณพาแมวไปถึงปลายทางแล้ว!');
+        alert('🎉 ยินดีด้วย! แมวไปถึงปลายทางแล้ว!');
       } else {
         alert('ลองอีกครั้ง! แมวยังไปไม่ถึงเป้าหมาย');
       }
-      player.x = 50; player.y = 350; player.angle = 0; // รีเซ็ต
+      player.x = 50; player.y = 350; player.angle = 0;
       draw();
+      sequence.innerHTML = '';
       return;
     }
-    const command = commands[step];
-    if(command === 'forward()') {
-      player.x += 20 * Math.cos(player.angle * Math.PI / 180);
-      player.y -= 20 * Math.sin(player.angle * Math.PI / 180);
-    } else if(command === 'left()') {
-      player.angle -= 90;
-    } else if(command === 'right()') {
-      player.angle += 90;
-    }
+
+    const cmd = commands[step];
+    if(cmd === 'ไปข้างหน้า') { player.x += 20 * Math.cos(player.angle * Math.PI/180); player.y -= 20 * Math.sin(player.angle * Math.PI/180); }
+    else if(cmd === 'เลี้ยวซ้าย') { player.angle -= 90; }
+    else if(cmd === 'เลี้ยวขวา') { player.angle += 90; }
+
     draw();
     step++;
     setTimeout(executeStep, 500);
