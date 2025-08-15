@@ -2,110 +2,62 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>เกมโยงคำสั่งตัวละคร</title>
+<title>เกมเรียนโค้ดง่าย ๆ</title>
 <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
 <style>
-  body {
-    font-family: 'Comic Neue', cursive;
-    text-align: center;
-    background: linear-gradient(to bottom, #e0f7ff, #fff3e0);
-    margin: 0;
-    padding: 0;
-  }
+  body { font-family: 'Comic Neue', cursive; text-align: center; background: #e0f7ff; }
   h1 { color: #ff6600; margin-top: 20px; font-size: 2.5em; }
-  #gameCanvas { background-color: #fff; border: 3px solid #ff6600; border-radius: 15px; margin-top: 20px; }
-  #commands { display: flex; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
-  .cmd { background-color: #ffcc99; border: 2px solid #ff6600; border-radius: 10px; padding: 10px 20px; margin: 5px; cursor: grab; }
-  #sequence { min-height: 50px; background-color: #fff3e0; border: 2px dashed #ff6600; margin: 20px auto; padding: 10px; width: 400px; border-radius: 10px; }
-  button { font-size: 16px; padding: 10px 20px; border-radius: 10px; margin-top: 10px; cursor: pointer; border: 2px solid #ff6600; background-color: #ffcc99; }
+  .question-box { background: #fff; border: 3px solid #ff6600; border-radius: 15px; padding: 20px; margin: 20px auto; max-width: 600px; }
+  button { margin: 10px; padding: 10px 20px; border-radius: 10px; border: 2px solid #ff6600; background-color: #ffcc99; font-size: 16px; cursor: pointer; }
 </style>
 </head>
 <body>
 
-<h1>🐱 เกมโยงคำสั่งตัวละคร 🐱</h1>
-<canvas id="gameCanvas" width="400" height="400"></canvas>
-
-<div id="commands">
-  <div class="cmd" draggable="true">ไปข้างหน้า</div>
-  <div class="cmd" draggable="true">เลี้ยวซ้าย</div>
-  <div class="cmd" draggable="true">เลี้ยวขวา</div>
-</div>
-
-<h3>ลากคำสั่งมาที่นี่</h3>
-<div id="sequence"></div>
-<button onclick="runSequence()">Run</button>
+<h1>🎮 เกมเรียนโค้ดง่าย ๆ 🎮</h1>
+<div class="question-box" id="questionBox"></div>
+<p id="score">คะแนน: 0</p>
 
 <script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-let player = { x: 50, y: 350, angle: 0 };
-const goal = { x: 350, y: 50 };
-
-function draw() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle = '#33cc33';
-  ctx.fillRect(goal.x-15, goal.y-15, 30, 30);
-
-  ctx.save();
-  ctx.translate(player.x, player.y);
-  ctx.rotate(player.angle * Math.PI / 180);
-  ctx.fillStyle = '#ff6600';
-  ctx.fillRect(-15,-15,30,30);
-  ctx.restore();
-}
-draw();
-
-// Drag & Drop
-const cmds = document.querySelectorAll('.cmd');
-const sequence = document.getElementById('sequence');
-
-cmds.forEach(cmd => {
-  cmd.addEventListener('dragstart', e => { e.dataTransfer.setData('text', cmd.innerText); });
-});
-
-sequence.addEventListener('dragover', e => e.preventDefault());
-sequence.addEventListener('drop', e => {
-  const text = e.dataTransfer.getData('text');
-  const div = document.createElement('div');
-  div.innerText = text;
-  div.style.margin = "5px";
-  div.style.display = "inline-block";
-  div.style.padding = "5px 10px";
-  div.style.backgroundColor = "#ffe0b3";
-  div.style.borderRadius = "5px";
-  sequence.appendChild(div);
-});
-
-function runSequence() {
-  const commands = Array.from(sequence.children).map(div => div.innerText);
-  let step = 0;
-
-  function executeStep() {
-    if(step >= commands.length) {
-      draw();
-      if(Math.abs(player.x - goal.x) < 20 && Math.abs(player.y - goal.y) < 20) {
-        alert('🎉 ยินดีด้วย! แมวไปถึงปลายทางแล้ว!');
-      } else {
-        alert('ลองอีกครั้ง! แมวยังไปไม่ถึงเป้าหมาย');
-      }
-      player.x = 50; player.y = 350; player.angle = 0;
-      draw();
-      sequence.innerHTML = '';
-      return;
-    }
-
-    const cmd = commands[step];
-    if(cmd === 'ไปข้างหน้า') { player.x += 20 * Math.cos(player.angle * Math.PI/180); player.y -= 20 * Math.sin(player.angle * Math.PI/180); }
-    else if(cmd === 'เลี้ยวซ้าย') { player.angle -= 90; }
-    else if(cmd === 'เลี้ยวขวา') { player.angle += 90; }
-
-    draw();
-    step++;
-    setTimeout(executeStep, 500);
+const questions = [
+  {
+    q: 'อยากให้คอมพิวเตอร์แสดงข้อความ "สวัสดี"',
+    options: ['print("สวัสดี")', 'input("สวัสดี")', 'for i in range(3):'],
+    answer: 0
+  },
+  {
+    q: 'ทำซ้ำ 3 ครั้ง',
+    options: ['for i in range(3):', 'if i == 3:', 'print(3)'],
+    answer: 0
+  },
+  {
+    q: 'ตรวจสอบว่า x > 5',
+    options: ['if x > 5:', 'for x > 5:', 'print(x > 5)'],
+    answer: 0
   }
+];
 
-  executeStep();
+let current = 0;
+let score = 0;
+
+function showQuestion() {
+  const box = document.getElementById('questionBox');
+  box.innerHTML = `<h2>${questions[current].q}</h2>`;
+  questions[current].options.forEach((opt,i) => {
+    box.innerHTML += `<button onclick="checkAnswer(${i})">${opt}</button>`;
+  });
 }
+
+function checkAnswer(i) {
+  if(i === questions[current].answer) score++;
+  current++;
+  if(current < questions.length) showQuestion();
+  else {
+    document.getElementById('questionBox').innerHTML = `<h2>จบเกม! คะแนนของคุณ: ${score} / ${questions.length}</h2>`;
+  }
+  document.getElementById('score').innerText = `คะแนน: ${score}`;
+}
+
+showQuestion();
 </script>
 
 </body>
